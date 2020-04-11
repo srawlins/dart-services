@@ -23,6 +23,8 @@ Logger _logger = Logger('compiler');
 /// compile at a time.
 class Compiler {
   final Sdk _sdk;
+
+  // ignore: unused_field
   final FlutterSdk _flutterSdk;
   final FlutterWebManager _flutterWebManager;
   final String _dartdevcPath;
@@ -68,6 +70,8 @@ class Compiler {
         '--terse',
         if (!returnSourceMap) '--no-source-maps',
         '--packages=${_flutterWebManager.packagesFilePath}',
+        '--sound-null-safety',
+        '--enable-experiment=non-nullable',
         ...['-o', '$kMainDart.js'],
         kMainDart,
       ];
@@ -145,6 +149,7 @@ class Compiler {
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
+        '--enable-experiment=non-nullable',
         bootstrapPath,
         '--packages=${_flutterWebManager.packagesFilePath}',
       ];
@@ -174,7 +179,7 @@ class Compiler {
         final results = DDCCompilationResults(
           compiledJS: processedJs,
           modulesBaseUrl: 'https://storage.googleapis.com/'
-              'compilation_artifacts/${_flutterSdk.versionFull}/',
+              'nnbd_artifacts/${_flutterSdk.versionFull}/',
         );
         return results;
       }

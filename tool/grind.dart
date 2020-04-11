@@ -67,7 +67,7 @@ final List<String> compilationArtifacts = [
 void validateStorageArtifacts() async {
   final version = SdkManager.flutterSdk.versionFull;
 
-  const urlBase = 'https://storage.googleapis.com/compilation_artifacts/';
+  const urlBase = 'https://storage.googleapis.com/nnbd_artifacts/';
 
   for (final artifact in compilationArtifacts) {
     await _validateExists('$urlBase$version/$artifact');
@@ -153,11 +153,13 @@ void _buildStorageArtifacts(Directory dir) async {
   final compilerPath =
       path.join(flutterSdkPath.path, 'bin/cache/dart-sdk/bin/dartdevc');
   final dillPath = path.join(flutterSdkPath.path,
-      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill');
+      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk_sound.dill');
 
   final args = <String>[
     '-s',
     dillPath,
+    '--sound-null-safety',
+    '--enable-experiment=non-nullable',
     '--modules=amd',
     '-o',
     'flutter_web.js',
@@ -175,7 +177,7 @@ void _buildStorageArtifacts(Directory dir) async {
   await artifactsDir.create();
 
   final sdkJsPath = path.join(flutterSdkPath.path,
-      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js');
+      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd-sound/dart_sdk.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
@@ -185,7 +187,7 @@ void _buildStorageArtifacts(Directory dir) async {
   final version = SdkManager.flutterSdk.versionFull;
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
-      'artifacts/*.js gs://compilation_artifacts/$version/');
+      'artifacts/*.js gs://nnbd_artifacts/$version/');
 }
 
 @Task('Delete, re-download, and reinitialize the Flutter submodule.')
@@ -238,7 +240,7 @@ void fuzz() {
 @Depends(setupFlutterSubmodule, updateDockerVersion, generateProtos, analyze,
     test, fuzz, validateStorageArtifacts)
 void deploy() {
-  log('Run: gcloud app deploy --project=dart-services --no-promote');
+  log('Run: gcloud app deploy --project=dart-services-beta-0 --no-promote');
 }
 
 @Task()

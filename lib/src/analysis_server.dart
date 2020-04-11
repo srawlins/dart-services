@@ -43,14 +43,23 @@ class AnalysisServerWrapper {
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath, this.flutterWebManager) {
+  AnalysisServerWrapper(
+      this.sdkPath,
+      this.flutterWebManager, {
+        this.projectDirectory,
+      }) {
     _logger.info('AnalysisServerWrapper ctor');
     mainPath = _getPathFromName(kMainDart);
 
     serverScheduler = TaskScheduler();
   }
 
-  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+  final String projectDirectory;
+
+  // If there is no projectDirectory specified, default to the one created by
+  // the [FlutterWebManager].
+  String get _sourceDirPath =>
+      projectDirectory ?? flutterWebManager.projectDirectory.path;
 
   Future<AnalysisServer> init() {
     if (_init == null) {
@@ -65,7 +74,8 @@ class AnalysisServerWrapper {
       final serverArgs = <String>[
         '--dartpad',
         '--client-id=DartPad',
-        '--client-version=$_sdkVersion'
+        '--client-version=$_sdkVersion',
+        '--enable-experiment=non-nullable',
       ];
       _logger.info(
           'About to start with server with SDK path `$sdkPath` and args: $serverArgs');

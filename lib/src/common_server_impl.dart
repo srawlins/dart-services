@@ -73,9 +73,17 @@ class CommonServerImpl {
 
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
-    analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
+
+    analysisServer = AnalysisServerWrapper(
+      sdkPath,
+      flutterWebManager,
+      projectDirectory: Directory.systemTemp.createTempSync('pure_dart').path,
+    );
+
     flutterAnalysisServer = AnalysisServerWrapper(
-        flutterWebManager.flutterSdk.sdkPath, flutterWebManager);
+      flutterWebManager.flutterSdk.sdkPath,
+      flutterWebManager,
+    );
 
     compiler =
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);

@@ -235,7 +235,7 @@ void defineTests() {
 
     test('complete', () async {
       for (final version in versions) {
-        final jsonData = {'source': 'void main() {print("foo");}', 'offset': 1};
+        final jsonData = {'source': 'void main() {print("foo".);}', 'offset': 25};
         final response =
             await _sendPostRequest('dartservices/$version/complete', jsonData);
         expect(response.statusCode, 200);
