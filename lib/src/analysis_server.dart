@@ -65,7 +65,8 @@ class AnalysisServerWrapper {
       final serverArgs = <String>[
         '--dartpad',
         '--client-id=DartPad',
-        '--client-version=$_sdkVersion'
+        '--client-version=$_sdkVersion',
+        '--enable-experiment=non-nullable',
       ];
       _logger.info(
           'About to start with server with SDK path `$sdkPath` and args: $serverArgs');

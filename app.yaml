@@ -7,20 +7,24 @@ resources:
   disk_size_gb: 50
 
 automatic_scaling:
-  min_num_instances: 12
+  min_num_instances: 6
   max_num_instances: 40
   cool_down_period_sec: 60
   cpu_utilization:
     target_utilization: 0.6
 
 env_variables:
-  REDIS_SERVER_URI: 'redis://10.0.0.4:6379'
+#  Removing this environment variable will cause the server
+#  to spin up without attempting to connect to redis.
+  REDIS_SERVER_URI: 'redis://10.0.0.3:6379'
 
 network:
   name: vpc-dart-services
 
 skip_files:
 - ^\.git/.*$
+- dart-sdk/
+- flutter/
 
 # Health checks, for detail please see:
 # https://cloud.google.com/appengine/docs/flexible/custom-runtimes/configuring-your-app-with-app-yaml#updated_health_checks

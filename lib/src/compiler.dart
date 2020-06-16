@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
+import 'common_server_impl.dart';
 import 'flutter_web.dart';
 import 'pub.dart';
 import 'sdk_manager.dart';
@@ -23,6 +24,7 @@ Logger _logger = Logger('compiler');
 /// compile at a time.
 class Compiler {
   final Sdk _sdk;
+  // ignore: unused_field
   final FlutterSdk _flutterSdk;
   final FlutterWebManager _flutterWebManager;
   final String _dartdevcPath;
@@ -32,7 +34,7 @@ class Compiler {
       : _dartdevcPath = path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
         _ddcDriver = BazelWorkerDriver(
             () => Process.start(
-                  path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+                  path.join(_sdk.sdkPath, 'bin', 'dartdevc'),
                   <String>['--persistent_worker'],
                 ),
             maxWorkers: 1);
@@ -127,26 +129,25 @@ class Compiler {
     try {
       final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);
 
+      if (usingFlutter) {
+        throw BadRequest('This version of DartPad does not compile Flutter '
+            'code.');
+      }
+
       final mainPath = path.join(temp.path, kMainDart);
       final bootstrapPath = path.join(temp.path, kBootstrapDart);
-      final bootstrapContents =
-          usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+      final bootstrapContents = kBootstrapDartCode;
 
       await File(bootstrapPath).writeAsString(bootstrapContents);
       await File(mainPath).writeAsString(input);
 
       final arguments = <String>[
         '--modules=amd',
-        if (usingFlutter) ...[
-          '-s',
-          _flutterWebManager.summaryFilePath,
-          '-s',
-          '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
-        ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
+        '--sound-null-safety',
+        '--enable-experiment=non-nullable',
         bootstrapPath,
-        '--packages=${_flutterWebManager.packagesFilePath}',
       ];
 
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
@@ -173,8 +174,8 @@ class Compiler {
 
         final results = DDCCompilationResults(
           compiledJS: processedJs,
-          modulesBaseUrl: 'https://storage.googleapis.com/'
-              'compilation_artifacts/${_flutterSdk.versionFull}/',
+          modulesBaseUrl:
+              'https://storage.googleapis.com/nnbd_artifacts/2.9.0-0.0-custom/',
         );
         return results;
       }
