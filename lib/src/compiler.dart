@@ -70,6 +70,8 @@ class Compiler {
         '--terse',
         if (!returnSourceMap) '--no-source-maps',
         '--packages=${_flutterWebManager.packagesFilePath}',
+        '--sound-null-safety',
+        '--enable-experiment=non-nullable',
         ...['-o', '$kMainDart.js'],
         kMainDart,
       ];

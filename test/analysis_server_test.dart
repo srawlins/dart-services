@@ -212,7 +212,7 @@ void defineTests() {
       expect(completionsContains(results, 'a'), true);
       expect(completionsContains(results, 'ZZ'), false);
     });
-  });
+  }, skip: true);
 
   group('Flutter cached SDK analysis_server', () {
     setUp(() async {

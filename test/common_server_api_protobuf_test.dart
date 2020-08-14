@@ -213,8 +213,8 @@ void defineTests() {
 
     test('complete', () async {
       final request = proto.SourceRequest()
-        ..source = 'void main() {print("foo");}'
-        ..offset = 1;
+        ..source = 'void main() {print("foo".);}'
+        ..offset = 25;
       final response =
           await _sendPostRequest('dartservices/v2/complete', request);
       expect(response.statusCode, 200);

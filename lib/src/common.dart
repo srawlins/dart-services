@@ -40,7 +40,7 @@ import 'dart:html';
 
 void main() {
   print("hello");
-  querySelector('#foo').text = 'bar';
+  querySelector('#foo')?.text = 'bar';
 }
 """;
 
@@ -85,7 +85,7 @@ import 'dart:html';
 
 main() async {
   print("hello");
-  querySelector('#foo').text = 'bar';
+  querySelector('#foo')?.text = 'bar';
   var foo = await HttpRequest.getString('http://www.google.com');
   print(foo);
 }
