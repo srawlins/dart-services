@@ -6,7 +6,7 @@ FROM google/dart:2.8.4
 # To retrieve this value, please run the following in your closest shell:
 #
 # $ (cd flutter && git rev-parse HEAD)
-ARG FLUTTER_COMMIT=f994b769743368b36b9c03fb359f62230b60ab92
+ARG FLUTTER_COMMIT=97d67993312c83a0ff97462a24ddb60ee3356f1f
 ARG NNBD_SDK_VERSION="2.10.0"
 
 # We install unzip and remove the apt-index again to keep the

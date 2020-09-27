@@ -146,7 +146,7 @@ void defineTests() {
       final request = proto.SourceRequest()..source = sampleCodeFlutter;
       final response =
           await _sendPostRequest('dartservices/v2/analyze', request);
-      expect(response.statusCode, 400);
+      expect(response.statusCode, 200);
     });
 
     test('analyze errors', () async {

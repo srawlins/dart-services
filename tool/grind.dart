@@ -67,7 +67,7 @@ final List<String> compilationArtifacts = [
 void validateStorageArtifacts() async {
   final version = SdkManager.flutterSdk.versionFull;
 
-  const urlBase = 'https://storage.googleapis.com/compilation_artifacts/';
+  const urlBase = 'https://storage.googleapis.com/nnbd_artifacts/';
 
   for (final artifact in compilationArtifacts) {
     await _validateExists('$urlBase$version/$artifact');
@@ -158,6 +158,8 @@ void _buildStorageArtifacts(Directory dir) async {
   final args = <String>[
     '-s',
     dillPath,
+    //'--sound-null-safety',
+    '--enable-experiment=non-nullable',
     '--modules=amd',
     '-o',
     'flutter_web.js',
@@ -185,7 +187,7 @@ void _buildStorageArtifacts(Directory dir) async {
   final version = SdkManager.flutterSdk.versionFull;
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
-      'artifacts/*.js gs://compilation_artifacts/$version/');
+      'artifacts/*.js gs://nnbd_artifacts/$version/');
 }
 
 @Task('Delete, re-download, and reinitialize the Flutter submodule.')

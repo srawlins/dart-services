@@ -188,6 +188,9 @@ dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
+    
+environment:
+  sdk: '>=2.10.0-156.0.dev <3.0.0'
 ''';
     }
 

@@ -64,7 +64,7 @@ void defineTests() {
 
         expect(result.compiledJS, contains("define('dartpad_main', ["));
       });
-    }, skip: true);
+    });
 
     test('compileDDC with Flutter', () {
       return compiler
@@ -78,7 +78,7 @@ void defineTests() {
 
         expect(result.compiledJS, contains("define('dartpad_main', ["));
       });
-    }, skip: true);
+    });
 
     test('compileDDC with async', () {
       return compiler
@@ -90,7 +90,7 @@ void defineTests() {
 
         expect(result.compiledJS, contains("define('dartpad_main', ["));
       });
-    }, skip: true);
+    });
 
     test('compileDDC with single error', () {
       return compiler
