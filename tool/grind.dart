@@ -153,12 +153,12 @@ void _buildStorageArtifacts(Directory dir) async {
   final compilerPath =
       path.join(flutterSdkPath.path, 'bin/cache/dart-sdk/bin/dartdevc');
   final dillPath = path.join(flutterSdkPath.path,
-      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill');
+      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk_sound.dill');
 
   final args = <String>[
     '-s',
     dillPath,
-    //'--sound-null-safety',
+    '--sound-null-safety',
     '--enable-experiment=non-nullable',
     '--modules=amd',
     '-o',
@@ -177,7 +177,7 @@ void _buildStorageArtifacts(Directory dir) async {
   await artifactsDir.create();
 
   final sdkJsPath = path.join(flutterSdkPath.path,
-      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js');
+      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd-sound/dart_sdk.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);

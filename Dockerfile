@@ -1,13 +1,13 @@
 # Keep aligned with min SDK in pubspec.yaml and Dart test version in .travis.yml
-FROM google/dart:2.9.3
+FROM google/dart:2.10.1
 
 # The specific commit that dart-services should use. This should be kept
 # in sync with the flutter submodule in the dart-services repo.
 # To retrieve this value, please run the following in your closest shell:
 #
 # $ (cd flutter && git rev-parse HEAD)
-ARG FLUTTER_COMMIT=97d67993312c83a0ff97462a24ddb60ee3356f1f
-ARG NNBD_SDK_VERSION="2.10.0"
+ARG FLUTTER_COMMIT=759ddb1ccd5eac7ce98486d67e79f4e656fd670c
+#ARG NNBD_SDK_VERSION="2.10.1"
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
@@ -33,7 +33,7 @@ RUN pub get --offline
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
 # Download the NNBD Dart SDK and unzip it.
-RUN wget https://storage.googleapis.com/nnbd_artifacts/$NNBD_SDK_VERSION/dartsdk-linux-x64-release.zip
+RUN wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.11.0-190.0.dev/sdk/dartsdk-linux-x64-release.zip
 RUN unzip dartsdk-linux-x64-release.zip
 
 # Clone the flutter repo and set it to the same commit as the flutter submodule.
