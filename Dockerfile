@@ -6,8 +6,7 @@ FROM google/dart:2.10.1
 # To retrieve this value, please run the following in your closest shell:
 #
 # $ (cd flutter && git rev-parse HEAD)
-ARG FLUTTER_COMMIT=759ddb1ccd5eac7ce98486d67e79f4e656fd670c
-#ARG NNBD_SDK_VERSION="2.10.1"
+ARG FLUTTER_COMMIT=dd93ee301f18e26b0334459f51fcc82dd141e232
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
