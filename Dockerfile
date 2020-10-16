@@ -1,5 +1,5 @@
 # Keep aligned with min SDK in pubspec.yaml and Dart test version in .travis.yml
-FROM google/dart:2.10.1
+FROM google/dart:2.10.2
 
 # The specific commit that dart-services should use. This should be kept
 # in sync with the flutter submodule in the dart-services repo.
@@ -32,7 +32,7 @@ RUN pub get --offline
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
 # Download the NNBD Dart SDK and unzip it.
-RUN wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.11.0-190.0.dev/sdk/dartsdk-linux-x64-release.zip
+RUN wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.11.0-218.0.dev/sdk/dartsdk-linux-x64-release.zip
 RUN unzip dartsdk-linux-x64-release.zip
 
 # Clone the flutter repo and set it to the same commit as the flutter submodule.
