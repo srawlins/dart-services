@@ -32,7 +32,7 @@ RUN pub get --offline
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
 # Download the NNBD Dart SDK and unzip it.
-RUN wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.11.0-218.0.dev/sdk/dartsdk-linux-x64-release.zip
+RUN wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.11.0-240.0.dev/sdk/dartsdk-linux-x64-release.zip
 RUN unzip dartsdk-linux-x64-release.zip
 
 # Clone the flutter repo and set it to the same commit as the flutter submodule.
