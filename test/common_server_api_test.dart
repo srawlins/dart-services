@@ -75,9 +75,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
   final String title;
+  MyHomePage({Key? key, required this.title}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -107,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Text(
               '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context)?.textTheme.headline4,
             ),
           ],
         ),
@@ -153,7 +152,7 @@ class PhysicsCardDragDemo extends StatelessWidget {
 
 class DraggableCard extends StatefulWidget {
   final Widget child;
-  DraggableCard({this.child});
+  DraggableCard({required this.child});
 
   @override
   _DraggableCardState createState() => _DraggableCardState();
@@ -161,12 +160,12 @@ class DraggableCard extends StatefulWidget {
 
 class _DraggableCardState extends State<DraggableCard>
     with SingleTickerProviderStateMixin {
-  AnimationController _controller;
+  AnimationController? _controller;
   Alignment _dragAlignment = Alignment.center;
-  Animation<Alignment> _animation;
+  Animation<Alignment>? _animation;
 
   void _runAnimation(Offset pixelsPerSecond, Size size) {
-    _animation = _controller.drive(
+    _animation = _controller!.drive(
       AlignmentTween(
         begin: _dragAlignment,
         end: Alignment.center,
@@ -186,7 +185,7 @@ class _DraggableCardState extends State<DraggableCard>
 
     final simulation = SpringSimulation(spring, 0, 1, -unitVelocity);
 
-    _controller.animateWith(simulation);
+    _controller!.animateWith(simulation);
   }
 
   @override
@@ -194,25 +193,25 @@ class _DraggableCardState extends State<DraggableCard>
     super.initState();
     _controller = AnimationController(vsync: this);
 
-    _controller.addListener(() {
+    _controller!.addListener(() {
       setState(() {
-        _dragAlignment = _animation.value;
+        _dragAlignment = _animation!.value;
       });
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller!.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context)!.size;
     return GestureDetector(
       onPanDown: (details) {
-        _controller.stop();
+        _controller!.stop();
       },
       onPanUpdate: (details) {
         setState(() {
