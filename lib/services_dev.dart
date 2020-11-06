@@ -40,8 +40,6 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  _logger.info('Starting server with SDK: "$sdkPath"');
-
   EndpointsServer.serve(port).then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });

@@ -90,6 +90,7 @@ void main() => defineTests();
 
 void defineTests() {
   AnalysisServerWrapper analysisServer;
+  FlutterWebManager flutterWebManager;
 
   group('Platform SDK analysis_server', () {
     setUp(() async {
@@ -258,7 +259,7 @@ void defineTests() {
   group('Local NNBD SDK analysis_server', () {
     setUp(() async {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
+      analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
     });
     tearDown(() => analysisServer.shutdown());
