@@ -4,18 +4,16 @@
 
 library services_gae;
 
-import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:appengine/appengine.dart' as ae;
+import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-import 'src/common.dart';
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
-import 'src/flutter_web.dart';
 import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
 
@@ -30,12 +28,17 @@ final DateTime _serveUntil = DateTime.now()
 final Logger _logger = Logger('gae_server');
 
 void main(List<String> args) {
-  var gaePort = 8080;
-  if (args.isNotEmpty) gaePort = int.parse(args[0]);
+  final parser = ArgParser()
+    ..addFlag('dark-launch', help: 'Dark launch proxied compilation requests')
+    ..addOption('proxy-target',
+        help: 'URL base to proxy compilation requests to')
+    ..addOption('port',
+        abbr: 'p', defaultsTo: '8080', help: 'Port to attach to');
+  final results = parser.parse(args);
 
-  final sdk = sdkPath;
+  final gaePort = int.tryParse(results['port'] as String ?? '') ?? 8080;
 
-  if (sdk == null) {
+  if (SdkManager.sdk.sdkPath == null) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
@@ -50,35 +53,34 @@ void main(List<String> args) {
     }
   });
   log.info('''Initializing dart-services:
-    port: $gaePort
-    sdkPath: $sdkPath
-    REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
-    GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
+    --port: $gaePort
+    --dark-launch: ${results['dark-launch']}
+    --proxy-target: ${results['proxy-target']}
+    sdkPath: ${SdkManager.sdk?.sdkPath}
+    \$REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
+    \$GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');
 
-  final server = GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
+  final server = GaeServer(
+      io.Platform.environment['REDIS_SERVER_URI'],
+      results['dark-launch'].toString().toLowerCase() == 'true',
+      results['proxy-target'].toString());
   server.start(gaePort);
 }
 
 class GaeServer {
-  final String sdkPath;
   final String redisServerUri;
 
-  bool discoveryEnabled;
   CommonServerImpl commonServerImpl;
   CommonServerApi commonServerApi;
 
-  GaeServer(this.sdkPath, this.redisServerUri) {
+  GaeServer(this.redisServerUri, bool darkLaunch, String proxyTarget) {
     hierarchicalLoggingEnabled = true;
     recordStackTraceAtLevel = Level.SEVERE;
 
     _logger.level = Level.ALL;
 
-    discoveryEnabled = false;
-    final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     commonServerImpl = CommonServerImpl(
-      sdkPath,
-      flutterWebManager,
       GaeServerContainer(),
       redisServerUri == null
           ? InMemoryCache()
@@ -87,6 +89,10 @@ class GaeServer {
               io.Platform.environment['GAE_VERSION'],
             ),
     );
+    if (proxyTarget != null && proxyTarget.isNotEmpty) {
+      commonServerImpl =
+          CommonServerImplProxy(commonServerImpl, darkLaunch, proxyTarget);
+    }
     commonServerApi = CommonServerApi(commonServerImpl);
   }
 

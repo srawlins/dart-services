@@ -24,9 +24,7 @@ class FlutterWebManager {
     _init();
   }
 
-  void dispose() {
-    _projectDirectory.deleteSync(recursive: true);
-  }
+  Future<void> dispose() => _projectDirectory.delete(recursive: true);
 
   Directory get projectDirectory => _projectDirectory;
 
@@ -51,25 +49,21 @@ $_samplePackageName:lib/
 
   Future<void> warmup() async {
     try {
-      await initFlutterWeb();
+      if (_initedFlutterWeb) {
+        return;
+      }
+
+      _logger.info('creating flutter web pubspec');
+      final pubspec = createPubspec(true);
+      await File(path.join(_projectDirectory.path, 'pubspec.yaml'))
+          .writeAsString(pubspec);
+
+      await _runPubGet();
+
+      _initedFlutterWeb = true;
     } catch (e, s) {
       _logger.warning('Error initializing flutter web', e, s);
     }
-  }
-
-  Future<void> initFlutterWeb() async {
-    if (_initedFlutterWeb) {
-      return;
-    }
-
-    _logger.info('creating flutter web pubspec');
-    final pubspec = createPubspec(true);
-    await File(path.join(_projectDirectory.path, 'pubspec.yaml'))
-        .writeAsString(pubspec);
-
-    await _runPubGet();
-
-    _initedFlutterWeb = true;
   }
 
   String get summaryFilePath {

@@ -1,5 +1,5 @@
 # Keep aligned with min SDK in pubspec.yaml and Dart test version in .travis.yml
-FROM google/dart:2.10.2
+FROM google/dart:2.10.3
 
 # The specific commit that dart-services should use. This should be kept
 # in sync with the flutter submodule in the dart-services repo.
@@ -54,4 +54,6 @@ EXPOSE 8080
 # the Dart app using custom script enabling debug modes.
 CMD []
 
-ENTRYPOINT /bin/bash /dart_runtime/dart_run.sh
+ENTRYPOINT ["/dart_runtime/dart_run.sh", \
+            "--port", "8080", \
+            "--proxy-target", "https://dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/"]

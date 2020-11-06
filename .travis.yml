@@ -3,7 +3,7 @@ install:
   - gem install coveralls-lcov
 dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
-  - "2.10.2"
+  - "2.10.3"
   - beta
 
 # Use Ubuntu 18.04 (Bionic Beaver) 
@@ -12,7 +12,7 @@ dist: bionic
 os: linux
 
 branches:
-  only: [master, dart-29]
+  only: [master]
 before_script:
   - git submodule init
   - git submodule update
@@ -22,8 +22,8 @@ before_script:
   - flutter precache --web --no-android --no-ios --no-linux --no-windows --no-macos --no-fuchsia
   - wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.11.0-240.0.dev/sdk/dartsdk-linux-x64-release.zip
   - unzip dartsdk-linux-x64-release.zip
-  - wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
-  - unzip protoc-3.11.4-linux-x86_64.zip -d protoc
+  - wget https://github.com/protocolbuffers/protobuf/releases/download/v3.12.4/protoc-3.12.4-linux-x86_64.zip
+  - unzip protoc-3.12.4-linux-x86_64.zip -d protoc
   - export PATH=$PATH:$PWD/protoc/bin
   - pub global activate protoc_plugin
   - export PATH=$PATH:$HOME/.pub-cache/bin

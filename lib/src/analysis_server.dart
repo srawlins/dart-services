@@ -18,6 +18,7 @@ import 'flutter_web.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
+import 'sdk_manager.dart';
 
 final Logger _logger = Logger('analysis_server');
 
@@ -32,34 +33,82 @@ const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 // Use very long timeouts to ensure that the server has enough time to restart.
 const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
-class AnalysisServerWrapper {
-  final String sdkPath;
+class DartAnalysisServerWrapper extends AnalysisServerWrapper {
+  Directory _tempProject;
+
+  DartAnalysisServerWrapper() : super(SdkManager.sdk.sdkPath);
+
+  @override
+  Future<AnalysisServer> init() async {
+    _logger.info('DartAnalysisServerWrapper init');
+    _tempProject = await Directory.systemTemp.createTemp('DartAnalysisWrapper');
+    return super.init();
+  }
+
+  @override
+  String get _sourceDirPath => _tempProject.path;
+
+  @override
+  Future<proto.AnalysisResults> analyze(String source) {
+    _logger.info('DartAnalysisServerWrapper analyze');
+    return super.analyze(source);
+  }
+
+  @override
+  Future shutdown() {
+    _logger.info('DartAnalysisServerWrapper shutdown');
+    return _tempProject
+        .delete(recursive: true)
+        .then((value) => super.shutdown());
+  }
+}
+
+class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
   final FlutterWebManager flutterWebManager;
 
+  FlutterAnalysisServerWrapper(this.flutterWebManager)
+      : super(SdkManager.flutterSdk.sdkPath);
+
+  @override
+  Future<AnalysisServer> init() async {
+    _logger.info('FlutterAnalysisServerWrapper init');
+    return super.init();
+  }
+
+  @override
+  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+
+  @override
+  Future<proto.AnalysisResults> analyze(String source) {
+    _logger.info('FlutterAnalysisServerWrapper analyze');
+    return super.analyze(source);
+  }
+
+  @override
+  Future shutdown() {
+    _logger.info('FlutterAnalysisServerWrapper shutdown');
+    return super.shutdown();
+  }
+}
+
+abstract class AnalysisServerWrapper {
+  final String sdkPath;
+  final TaskScheduler serverScheduler = TaskScheduler();
+
   Future<AnalysisServer> _init;
-  String mainPath;
-  TaskScheduler serverScheduler;
 
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(
-      this.sdkPath,
-      this.flutterWebManager, {
-        this.projectDirectory,
-      }) {
-    _logger.info('AnalysisServerWrapper ctor');
-    mainPath = _getPathFromName(kMainDart);
-
-    serverScheduler = TaskScheduler();
-  }
-
   final String projectDirectory;
 
-  // If there is no projectDirectory specified, default to the one created by
-  // the [FlutterWebManager].
-  String get _sourceDirPath =>
-      projectDirectory ?? flutterWebManager.projectDirectory.path;
+  AnalysisServerWrapper(this.sdkPath, {this.projectDirectory}) {
+    _logger.info('AnalysisServerWrapper constructor');
+  }
+
+  String get mainPath => _getPathFromName(kMainDart);
+
+  String get _sourceDirPath;
 
   Future<AnalysisServer> init() {
     if (_init == null) {
@@ -72,13 +121,11 @@ class AnalysisServerWrapper {
       }
 
       final serverArgs = <String>[
-        '--dartpad',
         '--client-id=DartPad',
         '--client-version=$_sdkVersion',
         '--enable-experiment=non-nullable',
       ];
-      _logger.info(
-          'About to start with server with SDK path `$sdkPath` and args: $serverArgs');
+      _logger.info('Starting server; sdk: `$sdkPath`, args: $serverArgs');
 
       _init = AnalysisServer.create(
         onRead: onRead,
@@ -138,14 +185,23 @@ class AnalysisServerWrapper {
 
     final source = sources[location.sourceName];
     final prefix = source.substring(results.replacementOffset, location.offset);
-    suggestions = suggestions
-        .where(
-            (s) => s.completion.toLowerCase().startsWith(prefix.toLowerCase()))
-        // This hack filters out of scope completions. It needs removing when we
-        // have categories of completions.
-        // TODO(devoncarew): Remove this filter code.
-        .where((CompletionSuggestion c) => c.relevance > 500)
-        .toList();
+    suggestions = suggestions.where((suggestion) {
+      return suggestion.completion
+          .toLowerCase()
+          .startsWith(prefix.toLowerCase());
+    }).where((CompletionSuggestion suggestion) {
+      // We do not want to enable arbitrary discovery of file system resources.
+
+      // In order to avoid returning local file paths, we only allow returning
+      // IMPORT kinds that are dart: or package: imports.
+      if (suggestion.kind == 'IMPORT') {
+        final completion = suggestion.completion;
+        return completion.startsWith('dart:') ||
+            completion.startsWith('package:');
+      } else {
+        return true;
+      }
+    }).toList();
 
     suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
       if (x.relevance == y.relevance) {
@@ -257,8 +313,7 @@ class AnalysisServerWrapper {
   Future<proto.AnalysisResults> analyze(String source) {
     var sources = <String, String>{kMainDart: source};
 
-    _logger
-        .fine('analyzeMulti: Scheduler queue: ${serverScheduler.queueCount}');
+    _logger.fine('analyze: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler
         .schedule(ClosureTask<proto.AnalysisResults>(() async {

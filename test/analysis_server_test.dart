@@ -5,9 +5,9 @@
 library services.analyzer_server_test;
 
 import 'package:dart_services/src/analysis_server.dart';
-import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:test/test.dart';
 
@@ -90,28 +90,25 @@ void main() => defineTests();
 
 void defineTests() {
   AnalysisServerWrapper analysisServer;
-  FlutterWebManager flutterWebManager;
 
   group('Platform SDK analysis_server', () {
     setUp(() async {
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
+      analysisServer = DartAnalysisServerWrapper();
       await analysisServer.init();
     });
 
     tearDown(() => analysisServer.shutdown());
 
-    test('simple_completion', () {
+    test('simple_completion', () async {
       // Just after i.
-      return analysisServer.complete(completionCode, 32).then((results) {
-        expect(results.replacementLength, 0);
-        expect(results.replacementOffset, 32);
-        expect(completionsContains(results, 'abs'), true);
-        expect(completionsContains(results, 'codeUnitAt'), false);
-      });
+      final results = await analysisServer.complete(completionCode, 32);
+      expect(results.replacementLength, 0);
+      expect(results.replacementOffset, 32);
+      expectCompletionsContains(results, 'abs');
+      expect(completionsContains(results, 'codeUnitAt'), false);
     });
 
-    test('repro #126 - completions polluted on second request', () {
+    test('repro #126 - completions polluted on second request', () async {
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer.complete(completionFilterCode, 17).then((results) {
         return analysisServer
@@ -125,22 +122,44 @@ void defineTests() {
       });
     });
 
-    test('import_test', () {
+    test('import_test', () async {
+      // We're testing here that we don't have any path imports - we don't want
+      // to enable browsing the file system.
       final testCode = "import '/'; main() { int a = 0; a. }";
+      final results = await analysisServer.complete(testCode, 9);
+      final completions = results.completions;
 
-      return analysisServer.complete(testCode, 9).then((results) {
-        expect(results.completions.every((completion) {
+      if (completions.isNotEmpty) {
+        expect(completions.every((completion) {
           return completion.completion['completion'].startsWith('dart:');
         }), true);
-      });
+      }
     });
 
-    test('import_and_other_test', () {
-      final testCode = "import '/'; main() { int a = 0; a. }";
+    test('import_dart_core_test', () async {
+      // Ensure we can import dart: imports.
+      final testCode = "import 'dart:c'; main() { int a = 0; a. }";
 
-      return analysisServer.complete(testCode, 34).then((results) {
-        expect(completionsContains(results, 'abs'), true);
-      });
+      final results = await analysisServer.complete(testCode, 14);
+      final completions = results.completions;
+
+      expect(
+        completions.every((completion) =>
+            completion.completion['completion'].startsWith('dart:')),
+        true,
+      );
+      expect(
+        completions.any((completion) =>
+            completion.completion['completion'].startsWith('dart:')),
+        true,
+      );
+    });
+
+    test('import_and_other_test', () async {
+      final testCode = "import '/'; main() { int a = 0; a. }";
+      final results = await analysisServer.complete(testCode, 34);
+
+      expect(completionsContains(results, 'abs'), true);
     });
 
     test('simple_quickFix', () async {
@@ -215,10 +234,11 @@ void defineTests() {
   }, skip: true);
 
   group('Flutter cached SDK analysis_server', () {
+    FlutterWebManager flutterWebManager;
+
     setUp(() async {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      analysisServer = AnalysisServerWrapper(
-          SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
     });
 
@@ -272,3 +292,10 @@ void defineTests() {
 bool completionsContains(proto.CompleteResponse response, String expected) =>
     response.completions
         .any((completion) => completion.completion['completion'] == expected);
+
+void expectCompletionsContains(
+    proto.CompleteResponse response, String expected) {
+  final completions =
+      response.completions.map((c) => c.completion['completion']).toList();
+  expect(completions, contains(expected));
+}
