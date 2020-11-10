@@ -184,7 +184,7 @@ dependencies:
     sdk: flutter
     
 environment:
-  sdk: '>=2.10.0-156.0.dev <3.0.0'
+  sdk: '>=2.11.0-240.0.dev <3.0.0'
 ''';
     }
 
