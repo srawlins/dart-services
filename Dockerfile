@@ -56,4 +56,5 @@ CMD []
 
 ENTRYPOINT ["/dart_runtime/dart_run.sh", \
             "--port", "8080", \
+            "--dark-launch", \
             "--proxy-target", "https://dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/"]
