@@ -147,10 +147,11 @@ class Compiler {
           '-s',
           _flutterWebManager.summaryFilePath,
           '-s',
-          '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
+          '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk_sound.dill'
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
+        '--sound-null-safety',
         '--enable-experiment=non-nullable',
         bootstrapPath,
         '--packages=${_flutterWebManager.packagesFilePath}',
